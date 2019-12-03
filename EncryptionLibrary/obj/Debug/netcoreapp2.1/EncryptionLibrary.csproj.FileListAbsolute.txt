@@ -1,0 +1,11 @@
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\bin\Debug\netcoreapp2.1\EncryptionLibrary.deps.json
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\bin\Debug\netcoreapp2.1\EncryptionLibrary.runtimeconfig.json
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\bin\Debug\netcoreapp2.1\EncryptionLibrary.runtimeconfig.dev.json
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\bin\Debug\netcoreapp2.1\EncryptionLibrary.dll
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\bin\Debug\netcoreapp2.1\EncryptionLibrary.pdb
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\obj\Debug\netcoreapp2.1\EncryptionLibrary.csprojAssemblyReference.cache
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\obj\Debug\netcoreapp2.1\EncryptionLibrary.csproj.CoreCompileInputs.cache
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\obj\Debug\netcoreapp2.1\EncryptionLibrary.AssemblyInfoInputs.cache
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\obj\Debug\netcoreapp2.1\EncryptionLibrary.AssemblyInfo.cs
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\obj\Debug\netcoreapp2.1\EncryptionLibrary.dll
+C:\Users\Cory Mifsud\source\repos\EncryptionLibrary\EncryptionLibrary\obj\Debug\netcoreapp2.1\EncryptionLibrary.pdb
