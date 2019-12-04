@@ -6,17 +6,20 @@ namespace EncryptionLibrary {
         static void Main(string[] args) {
             Console.WriteLine("Encryption test. 1 : Encrypt, 2 : Decrypt");
             string s = Console.ReadLine();
+            EncryptionWrapper enc = new EncryptionWrapper("enctest.txt");
+
             if ( "1" == s ) {
-                string a;
+                string a = Console.ReadLine();
                 List<string> strings = new List<string>();
-                do {
-                    a = Console.ReadLine();
+                while ( a.Length > 1 ) {
                     strings.Add(a);
-                } while ( a.Length > 1 );
-                EncryptionWrapper.testEncrypt(strings);
+                    a = Console.ReadLine();
+                }
+
+                enc.encryptToFile(strings);
             }
             else if ( "2" == s ) {
-                EncryptionWrapper.testDecrypt();
+                enc.decryptFromFile();
             }
             Console.WriteLine("Test end.");
         }
