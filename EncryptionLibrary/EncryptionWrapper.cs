@@ -11,31 +11,27 @@ namespace EncryptionLibrary {
 
         private string path = "enctest.txt";
 
-        private byte[] initialisationVector;
+        private byte[] IV;
         private byte[] key;
 
         public EncryptionWrapper(string path) {
             this.path = path;
             key = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
+            IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
         }
 
         public void encryptToFile(List<string> payload) {
-            // payload validation
-
             using (Aes aes = Aes.Create() ) {
-                aes.Key = key;
-                aes.GenerateIV();
-                Console.WriteLine("Key {0}", aes.Key);
-                Console.Write("IV :");
-                foreach (int i in Encoding.UTF8.GetString(aes.IV).ToCharArray() ) {
-                    Console.Write(i);
-                }
-                Console.WriteLine();
-                Console.WriteLine("IV {0}", Encoding.UTF8.GetString(aes.IV));
+                //aes.Key = key;
+                //aes.GenerateIV();
+              
                 using (FileStream file = File.OpenWrite(path) ) {
-                    using (StreamWriter writer = new StreamWriter(file)) {
-                        writer.WriteLine(Encoding.UTF8.GetString(aes.IV));
+                    for (int i = 0; i < 16; i++)
+                    {
+                        Console.Write("{0} ", IV[i]);
+                        file.WriteByte(IV[i]);
                     }
+                    file.Dispose();
 
                     ICryptoTransform alg = aes.CreateEncryptor(aes.Key, aes.IV);
                     using ( CryptoStream crypto = new CryptoStream(file, alg, CryptoStreamMode.Write) ) {
