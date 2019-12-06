@@ -5,11 +5,11 @@ namespace EncryptionLibrary {
     class Program {
         static void Main(string[] args) {
             bool quit = false;
+            EncryptionWrapper enc = new EncryptionWrapper("enctest.txt");
             while (!quit)
             {
                 Console.WriteLine("Encryption test. 1 : Encrypt, 2 : Decrypt");
                 string s = Console.ReadLine();
-                EncryptionWrapper enc = new EncryptionWrapper("enctest.txt");
 
                 if ("1" == s)
                 {

@@ -17,34 +17,60 @@ namespace EncryptionLibrary {
         public EncryptionWrapper(string path) {
             this.path = path;
             key = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
-            IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
+            //IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
+            IV = new byte[] { 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38 };
+            Console.WriteLine("IV byte array len: {0}", IV.Length);
         }
 
         public void encryptToFile(List<string> payload) {
-            using (Aes aes = Aes.Create() ) {
-                //aes.Key = key;
+            using ( Aes aes = Aes.Create() ) {
                 //aes.GenerateIV();
-              
-                using (FileStream file = File.OpenWrite(path) ) {
-                    for (int i = 0; i < 16; i++)
-                    {
-                        Console.Write("{0} ", IV[i]);
+                aes.Key = key;
+                aes.IV = IV;
+                aes.Padding = PaddingMode.Zeros;
+
+                Console.WriteLine("WRITING");
+                using ( FileStream file = File.OpenWrite(path) ) {
+                    Console.WriteLine("Outgoing IV:");
+                    for ( int i = 0; i < 16; i++ ) {
+                        Console.Write("{0} ", (char)IV[i]);
                         file.WriteByte(IV[i]);
                     }
-                    file.Dispose();
+                    Console.WriteLine();
 
                     ICryptoTransform alg = aes.CreateEncryptor(aes.Key, aes.IV);
                     using ( CryptoStream crypto = new CryptoStream(file, alg, CryptoStreamMode.Write) ) {
                         using ( StreamWriter writer = new StreamWriter(crypto) ) {
                             writer.WriteLine("verification");
-                            foreach ( string s in payload ) {
-                                writer.WriteLine("{0} ", s);
-                            }
+                            //foreach ( string s in payload ) {
+                            //    writer.WriteLine("{0} ", s);
+                            //}
                         }
                     }
                 }
+                Console.WriteLine("Encryption complete.");
+
+                Console.WriteLine("READING");
+                using ( FileStream file = File.OpenRead(path) ) {
+                    Console.WriteLine("offset {0}", file.Position);
+                    Console.WriteLine("Incoming IV:");
+                    for ( int i = 0; i < 16; i++ ) {
+                        int c = file.ReadByte();
+                        Console.Write((char)c);
+                    }
+                    Console.WriteLine("offset {0}", file.Position);
+                    Console.WriteLine();
+                    ICryptoTransform alg = aes.CreateDecryptor(aes.Key, aes.IV);
+                    using ( CryptoStream crypto = new CryptoStream(file, alg, CryptoStreamMode.Read) ) {
+                        Console.WriteLine("offset {0}", file.Position);
+                        using ( StreamReader reader = new StreamReader(crypto) ) {
+                            Console.WriteLine("offset {0}", file.Position);
+                            Console.WriteLine(reader.ReadLine());
+                        }
+                        Console.WriteLine("Done");
+                    }
+                }
             }
-            Console.WriteLine("Encryption complete.");
         }
 
         public string decryptFromFile() {
