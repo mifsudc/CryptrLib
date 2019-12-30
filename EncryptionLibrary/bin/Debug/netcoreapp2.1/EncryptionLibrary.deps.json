@@ -1,14 +1,25 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v2.1",
-    "signature": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    "signature": "95a5a502b4924c625352cf1ca526ac0e719ef403"
   },
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v2.1": {
       "EncryptionLibrary/1.0.0": {
+        "dependencies": {
+          "BCrypt": "1.0.0"
+        },
         "runtime": {
           "EncryptionLibrary.dll": {}
+        }
+      },
+      "BCrypt/1.0.0": {
+        "runtime": {
+          "lib/DevOne.Security.Cryptography.BCrypt.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       }
     }
@@ -18,6 +29,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "BCrypt/1.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/ibwe2Sg7MJR26IrEzW2Rde9/+A+AYXB5Kf9w/8BVLDdzSfUe4W2M7i2efy1Wa9wHh1k0y81Q6h9Ty8C6IrUGA==",
+      "path": "bcrypt/1.0.0",
+      "hashPath": "bcrypt.1.0.0.nupkg.sha512"
     }
   }
 }

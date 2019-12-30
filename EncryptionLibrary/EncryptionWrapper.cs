@@ -3,109 +3,104 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Security.Cryptography;
+using DevOne.Security.Cryptography.BCrypt; 
 
 namespace EncryptionLibrary {
-    class EncryptionWrapper {
 
-        public static List<string> DECRYPTION_ERROR = new List<string>();
+    static class EncryptionWrapper {
+        public static (byte[], string, byte[]) preparePassword(string pass) {
+            string salt = BCryptHelper.GenerateSalt();
+            string bHash = BCryptHelper.HashPassword(pass, salt);
 
-        private string path = "enctest.txt";
+            byte[] intermediary = new byte[31];
+            for (int i = 0; i < 31; i++ )
+                intermediary[i] = Convert.ToByte( bHash[i+29] );
 
-        private byte[] IV;
-        private byte[] key;
-
-        public EncryptionWrapper(string path) {
-            this.path = path;
-            key = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
-            //IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
-            IV = new byte[] { 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38 };
-            Console.WriteLine("IV byte array len: {0}", IV.Length);
+            byte[] shaHash;
+            using ( var sha = SHA256.Create() )
+                shaHash = sha.ComputeHash(Encoding.UTF8.GetBytes(bHash));
+   
+            return (shaHash, salt, intermediary);
         }
 
-        public void encryptToFile(List<string> payload) {
-            using ( Aes aes = Aes.Create() ) {
-                //aes.GenerateIV();
+
+        public static void encryptToFile(string path, List<string> payload, byte[] key, string salt, byte[] hash) {
+            using ( var aes = Aes.Create() ) {
+                // Set up aes encryptor
                 aes.Key = key;
-                aes.IV = IV;
                 aes.Padding = PaddingMode.Zeros;
 
-                Console.WriteLine("WRITING");
-                using ( FileStream file = File.OpenWrite(path) ) {
-                    Console.WriteLine("Outgoing IV:");
-                    for ( int i = 0; i < 16; i++ ) {
-                        Console.Write("{0} ", (char)IV[i]);
-                        file.WriteByte(IV[i]);
-                    }
-                    Console.WriteLine();
+                using ( var file = new FileStream(path, FileMode.Truncate, FileAccess.Write) ) {
+                    // Prepend salt
+                    for ( int i = 0; i < 29; i++ )
+                        file.WriteByte(Convert.ToByte(salt[i]));
+
+                    // Prepend IV
+                    aes.GenerateIV();
+                    for ( int i = 0; i < 16; i++ )
+                        file.WriteByte(aes.IV[i]);
 
                     ICryptoTransform alg = aes.CreateEncryptor(aes.Key, aes.IV);
-                    using ( CryptoStream crypto = new CryptoStream(file, alg, CryptoStreamMode.Write) ) {
-                        using ( StreamWriter writer = new StreamWriter(crypto) ) {
-                            writer.WriteLine("verification");
-                            //foreach ( string s in payload ) {
-                            //    writer.WriteLine("{0} ", s);
-                            //}
-                        }
-                    }
-                }
-                Console.WriteLine("Encryption complete.");
+                    using ( var crypto = new CryptoStream(file, alg, CryptoStreamMode.Write) ) {
+                        // Prepend encoded verification hash
+                        for ( int i = 0; i < 31; i++ )
+                            crypto.WriteByte(hash[i]);
 
-                Console.WriteLine("READING");
-                using ( FileStream file = File.OpenRead(path) ) {
-                    Console.WriteLine("offset {0}", file.Position);
-                    Console.WriteLine("Incoming IV:");
-                    for ( int i = 0; i < 16; i++ ) {
-                        int c = file.ReadByte();
-                        Console.Write((char)c);
-                    }
-                    Console.WriteLine("offset {0}", file.Position);
-                    Console.WriteLine();
-                    ICryptoTransform alg = aes.CreateDecryptor(aes.Key, aes.IV);
-                    using ( CryptoStream crypto = new CryptoStream(file, alg, CryptoStreamMode.Read) ) {
-                        Console.WriteLine("offset {0}", file.Position);
-                        using ( StreamReader reader = new StreamReader(crypto) ) {
-                            Console.WriteLine("offset {0}", file.Position);
-                            Console.WriteLine(reader.ReadLine());
+                        // Write encoded payload
+                        using ( var writer = new StreamWriter(crypto) ) {
+                            foreach ( string s in payload )
+                                writer.WriteLine(s);
+                            writer.Flush();
                         }
-                        Console.WriteLine("Done");
                     }
                 }
             }
         }
 
-        public string decryptFromFile() {
-            if ( key == null )
-                return null;
 
-            List<string> plainText = new List<string>();
-            using ( Aes aes = Aes.Create() ) {
+        public static List<string> decryptFromFile(string path, string pass, byte[] key) {
+            var payload = new List<string>();
+
+            using ( var aes = Aes.Create() ) {
+                // Setup aes decryptor
                 aes.Key = key;
-                Console.WriteLine("Key {0}", aes.Key);
-                Console.WriteLine("IV {0}", aes.IV);
+                aes.Padding = PaddingMode.Zeros;
+
                 using ( FileStream file = File.OpenRead(path) ) {
-                    using ( StreamReader reader = new StreamReader(file) ) {
-                        string iv = reader.ReadLine();
-                        aes.Key = Encoding.UTF8.GetBytes(iv);
-                        Console.WriteLine("IV string: {0}", iv);
-                        Console.WriteLine("IV bytes: {0}", aes.IV);
-                    }
+                    // Read salt
+                    string salt = string.Empty;
+                    for ( int i = 0; i < 29; i++ )
+                        salt += Convert.ToChar(file.ReadByte());
 
-                    ICryptoTransform alg = aes.CreateEncryptor(aes.Key, aes.IV);
-                    using ( CryptoStream crypto = new CryptoStream(file, alg, CryptoStreamMode.Read) ) {
-                        using ( StreamReader reader = new StreamReader(crypto) ) {
-                            if (reader.ReadLine().CompareTo("verification") != 0)
-                                return "Verification failed.";
+                    // Read iv
+                    byte[] iv = new byte[16];
+                    for ( int i = 0; i < 16; i++ )
+                        iv[i] = Convert.ToByte(file.ReadByte());
+                    aes.IV = iv;
 
-                            while ( !reader.EndOfStream ) {
-                                string s = reader.ReadLine();
-                                Console.WriteLine(s);
-                                plainText.Add( s );
+                    ICryptoTransform alg = aes.CreateDecryptor(aes.Key, aes.IV);
+                    using ( var crypto = new CryptoStream(file, alg, CryptoStreamMode.Read) ) {
+                        // Read encoded verification hash
+                        var hash = new byte[31];
+                        for ( int i = 0; i < 31; i++ )
+                            hash[i] = Convert.ToByte(crypto.ReadByte());
+
+                        string hashed = salt + Encoding.UTF8.GetString(hash);
+                        if ( BCryptHelper.CheckPassword(pass, hashed) ) {
+                            using ( var reader = new StreamReader(crypto) ) {
+                                // Read encoded payload
+                                payload.Add(reader.ReadLine());
+                                while ( !reader.EndOfStream )
+                                    payload.Add(reader.ReadLine());
                             }
                         }
+                        else throw new Exception("Verification Error.");
                     }
                 }
             }
-            return plainText[0] ?? "Nothing there.";
+            return payload;
         }
+
+
     }
 }
